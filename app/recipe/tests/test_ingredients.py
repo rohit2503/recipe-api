@@ -67,3 +67,22 @@ class PrivateIngredientsTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]["name"], ing.name)
+
+    def create_successful_ingredient(self):
+        """
+        Test Create new ingredient
+        """
+        payload = {"name": "Flour"}
+        self.client.post(INGREDIENTS_URLS, payload)
+
+        exists = Ingredients.objects.filter(name=payload["name"],
+                                            user=self.user).exists()
+        self.assertTrue(exists)
+
+    def create_invalid_ingredients(self):
+        """Test for invalid ingredients"""
+        payload = {"name": ""}
+
+        res = self.client.post(INGREDIENTS_URLS, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
