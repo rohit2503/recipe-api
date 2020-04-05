@@ -115,3 +115,65 @@ class PrivateRecipeAPI(TestCase):
         serializer = RecipeDetailSerializer(recipe)
 
         self.assertEqual(res.data, serializer.data)
+
+    def test_create_basic_recipe(self):
+        """Test creating recipe"""
+
+        payload = {"title": "Sample rceipe",
+                   "time_minutes": 30,
+                   "price": 10.00
+                   }
+        res = self.client.post(RECIPES_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        recipe = Recipe.objects.all()
+
+        self.assertEqual(recipe.count(), 1)
+
+        for keys in payload.keys():
+            self.assertEqual(payload[keys], getattr(recipe[0], keys))
+
+    def test_create_recipe_with_tags(self):
+        """test to create the recipe with tags"""
+        tag1 = sample_tag(self.user, name="lunch")
+        tag2 = sample_tag(self.user, name="breakfast")
+
+        payload = {"title": "Sample recipe",
+                   "time_minutes": 30,
+                   "price": 10.00,
+                   "tag": [tag1.id, tag2.id]
+                   }
+
+        res = self.client.post(RECIPES_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        tags = Tag.objects.all()
+
+        self.assertEqual(tags.count(), 2)
+
+        self.assertIn(tag1, tags)
+        self.assertIn(tag2, tags)
+
+    def test_create_with_ingredients(self):
+        """test recipe with ingredients"""
+
+        ingr1 = sample_ingredients(self.user, name="Fish")
+        ingr2 = sample_ingredients(self.user, name="Meat")
+
+        payload = {"title": "Sample recipe",
+                   "time_minutes": 30,
+                   "price": 10.00,
+                   "ingredients": [ingr1.id, ingr2.id]
+                   }
+
+        res = self.client.post(RECIPES_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        ingredients = Ingredients.objects.all()
+
+        self.assertEqual(ingredients.count(), 2)
+
+        self.assertIn(ingr1, ingredients)
+        self.assertIn(ingr2, ingredients)
