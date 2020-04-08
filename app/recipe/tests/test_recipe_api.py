@@ -226,3 +226,52 @@ class RecipeImageUpoadTests(TestCase):
         res = self.client.post(url, {'image': "not image"}, format="multipart")
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_filter_recipe_by_tag(self):
+        """Test filter recipe by tag"""
+
+        recipe1 = sample_recipe(self.user, title="Veg Potato Gravy")
+        recipe2 = sample_recipe(self.user, title="Chicken Lollipop")
+
+        tag1 = sample_tag(self.user, name="Veg")
+        tag2 = sample_tag(self.user, name="None-Veg")
+        recipe1.tag.add(tag1)
+        recipe2.tag.add(tag2)
+
+        recipe3 = sample_recipe(self.user, title="Fish and Curry")
+
+        res = self.client.get(RECIPES_URL, {'tags': f'{tag1.id},{tag2.id}'})
+
+        serializer1 = RecipeSerializer(recipe1)
+        serializer2 = RecipeSerializer(recipe2)
+        serializer3 = RecipeSerializer(recipe3)
+
+        self.assertIn(serializer1.data, res.data)
+        self.assertIn(serializer2.data, res.data)
+        self.assertNotIn(serializer3.data, res.data)
+
+    def test_filter_recipe_by_ingredients(self):
+        """test recipe filter by ingredients"""
+
+        recipe1 = sample_recipe(self.user, title="Dal Pitha")
+        recipe2 = sample_recipe(self.user, title="Masala Dosa")
+
+        ingredients1 = sample_ingredients(self.user, name="Rice Flour")
+        ingredients2 = sample_ingredients(self.user, name="Rawa")
+
+        recipe1.ingredients.add(ingredients1)
+        recipe2.ingredients.add(ingredients2)
+
+        recipe3 = sample_recipe(self.user, title="Rasogulla")
+
+        res = self.client.get(RECIPES_URL,
+                              {"ingredients":
+                               f'{ingredients1.id},{ingredients2.id}'})
+
+        serialiazer1 = RecipeSerializer(recipe1)
+        serialiazer2 = RecipeSerializer(recipe2)
+        serialiazer3 = RecipeSerializer(recipe3)
+
+        self.assertIn(serialiazer1.data, res.data)
+        self.assertIn(serialiazer2.data, res.data)
+        self.assertNotIn(serialiazer3.data, res.data)
